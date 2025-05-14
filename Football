@@ -6,11 +6,14 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 
 local function waitForUpdateEvent()
-	while not ReplicatedStorage:FindFirstChild("UpdateWalkSpeed") do
+	local event
+	repeat
+		event = ReplicatedStorage:FindFirstChild("UpdateWalkSpeed")
 		task.wait()
-	end
-	return ReplicatedStorage:FindFirstChild("UpdateWalkSpeed")
+	until event
+	return event
 end
+
 local updateWalkSpeedEvent = waitForUpdateEvent()
 
 local speedBoost = 23
@@ -21,13 +24,18 @@ local holdingLeftClick = false
 local walkSpeedUpdatesEnabled = true
 
 local function getHumanoid()
-	local character = player.Character or player.CharacterAdded:Wait()
+	local character = player.Character
+	if not character or not character.Parent then
+		character = player.CharacterAdded:Wait()
+	end
+
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	while not humanoid do
-		character = player.Character or player.CharacterAdded:Wait()
-		humanoid = character:FindFirstChildOfClass("Humanoid")
 		task.wait()
+		character = player.Character
+		humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	end
+
 	return humanoid
 end
 
