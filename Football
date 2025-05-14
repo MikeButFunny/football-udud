@@ -1,38 +1,54 @@
-
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local player = Players.LocalPlayer
-local updateWalkSpeedEvent = ReplicatedStorage:WaitForChild("UpdateWalkSpeed")
 
+local function waitForUpdateEvent()
+	while not ReplicatedStorage:FindFirstChild("UpdateWalkSpeed") do
+		task.wait()
+	end
+	return ReplicatedStorage:FindFirstChild("UpdateWalkSpeed")
+end
+local updateWalkSpeedEvent = waitForUpdateEvent()
 
 local speedBoost = 23
 local defaultSpeed = 16
-
 
 local holdingF = false
 local holdingLeftClick = false
 local walkSpeedUpdatesEnabled = true
 
+local function getHumanoid()
+	local character = player.Character or player.CharacterAdded:Wait()
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	while not humanoid do
+		character = player.Character or player.CharacterAdded:Wait()
+		humanoid = character:FindFirstChildOfClass("Humanoid")
+		task.wait()
+	end
+	return humanoid
+end
 
 local function updateHumanoidWalkSpeed(speed)
-	local character = player.Character
-	if character then
-		local humanoid = character:FindFirstChild("Humanoid")
-		if humanoid then
-			humanoid.WalkSpeed = speed
-		end
+	local humanoid = getHumanoid()
+	if humanoid then
+		humanoid.WalkSpeed = speed
 	end
 end
 
+local function waitForPlayerGui()
+	while not player:FindFirstChild("PlayerGui") do
+		task.wait()
+	end
+	return player:FindFirstChild("PlayerGui")
+end
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "InputStatusUI"
 screenGui.ResetOnSpawn = false
-screenGui.Parent = player:WaitForChild("PlayerGui")
-
+screenGui.Parent = waitForPlayerGui()
 
 local leftClickLabel = Instance.new("TextLabel")
 leftClickLabel.Size = UDim2.new(0, 150, 0, 30)
@@ -40,12 +56,11 @@ leftClickLabel.Position = UDim2.new(0, 10, 1, -80)
 leftClickLabel.BackgroundTransparency = 0.5
 leftClickLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 leftClickLabel.Text = "LEFT CLICK"
-leftClickLabel.TextColor3 = Color3.fromRGB(255, 0, 0) -- starts RED
+leftClickLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
 leftClickLabel.Font = Enum.Font.SourceSansBold
 leftClickLabel.TextSize = 18
 leftClickLabel.TextStrokeTransparency = 0.7
 leftClickLabel.Parent = screenGui
-
 
 local rightClickLabel = Instance.new("TextLabel")
 rightClickLabel.Size = UDim2.new(0, 150, 0, 30)
@@ -53,13 +68,12 @@ rightClickLabel.Position = UDim2.new(0, 10, 1, -40)
 rightClickLabel.BackgroundTransparency = 0.5
 rightClickLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 rightClickLabel.Text = "RIGHT CLICK"
-rightClickLabel.TextColor3 = Color3.fromRGB(0, 255, 0) -- starts GREEN (enabled)
+rightClickLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
 rightClickLabel.Font = Enum.Font.SourceSansBold
 rightClickLabel.TextSize = 18
 rightClickLabel.TextStrokeTransparency = 0.7
 rightClickLabel.Parent = screenGui
 
--- === UI Update Functions ===
 local function updateLeftClickUI()
 	leftClickLabel.TextColor3 = holdingLeftClick and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
 end
@@ -67,7 +81,6 @@ end
 local function updateRightClickUI()
 	rightClickLabel.TextColor3 = walkSpeedUpdatesEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
 end
-
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
@@ -98,15 +111,10 @@ UserInputService.InputEnded:Connect(function(input)
 	end
 end)
 
--- === Speed Control Loop ===
 RunService.Heartbeat:Connect(function()
 	if not walkSpeedUpdatesEnabled then return end
 
-	if holdingF or holdingLeftClick then
-		updateHumanoidWalkSpeed(speedBoost)
-		updateWalkSpeedEvent:FireServer(speedBoost)
-	else
-		updateHumanoidWalkSpeed(defaultSpeed)
-		updateWalkSpeedEvent:FireServer(defaultSpeed)
-	end
+	local speed = (holdingF or holdingLeftClick) and speedBoost or defaultSpeed
+	updateHumanoidWalkSpeed(speed)
+	updateWalkSpeedEvent:FireServer(speed)
 end)
