@@ -1,3 +1,5 @@
+task.wait(10)
+
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
@@ -83,24 +85,8 @@ leftClickLabel.TextSize = 18
 leftClickLabel.TextStrokeTransparency = 0.7
 leftClickLabel.Parent = screenGui
 
-local rightClickLabel = Instance.new("TextLabel")
-rightClickLabel.Size = UDim2.new(0, 150, 0, 30)
-rightClickLabel.Position = UDim2.new(0, 10, 1, -40)
-rightClickLabel.BackgroundTransparency = 0.5
-rightClickLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-rightClickLabel.Text = "RIGHT CLICK"
-rightClickLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-rightClickLabel.Font = Enum.Font.SourceSansBold
-rightClickLabel.TextSize = 18
-rightClickLabel.TextStrokeTransparency = 0.7
-rightClickLabel.Parent = screenGui
-
 local function updateLeftClickUI()
 	leftClickLabel.TextColor3 = holdingLeftClick and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-end
-
-local function updateRightClickUI()
-	rightClickLabel.TextColor3 = walkSpeedUpdatesEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
 end
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
@@ -113,11 +99,6 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		holdingLeftClick = true
 		updateLeftClickUI()
-	end
-
-	if input.UserInputType == Enum.UserInputType.MouseButton2 then
-		walkSpeedUpdatesEnabled = not walkSpeedUpdatesEnabled
-		updateRightClickUI()
 	end
 end)
 
