@@ -9,7 +9,10 @@ local function waitForUpdateEvent()
 	local event
 	repeat
 		event = ReplicatedStorage:FindFirstChild("UpdateWalkSpeed")
-		task.wait()
+		if not event then
+			warn("[Script] Waiting for UpdateWalkSpeed RemoteEvent...")
+			task.wait()
+		end
 	until event
 	return event
 end
@@ -25,15 +28,24 @@ local walkSpeedUpdatesEnabled = true
 
 local function getHumanoid()
 	local character = player.Character
-	if not character or not character.Parent then
+
+	if not character then
+		warn("[getHumanoid] Waiting for Character...")
 		character = player.CharacterAdded:Wait()
+	end
+
+	while not character:IsDescendantOf(game) do
+		warn("[getHumanoid] Character not parented to game, waiting...")
+		task.wait()
+		character = player.Character or player.CharacterAdded:Wait()
 	end
 
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	while not humanoid do
+		warn("[getHumanoid] Waiting for Humanoid...")
 		task.wait()
-		character = player.Character
-		humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		character = player.Character or player.CharacterAdded:Wait()
+		humanoid = character:FindFirstChildOfClass("Humanoid")
 	end
 
 	return humanoid
@@ -48,6 +60,7 @@ end
 
 local function waitForPlayerGui()
 	while not player:FindFirstChild("PlayerGui") do
+		warn("[Script] Waiting for PlayerGui...")
 		task.wait()
 	end
 	return player:FindFirstChild("PlayerGui")
